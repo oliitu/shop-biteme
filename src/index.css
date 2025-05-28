@@ -1,0 +1,31 @@
+@import "tailwindcss";
+@charset "UTF-8";
+
+
+.carrito #carrito {
+  display: none;
+}
+
+.carrito:hover #carrito {
+  display: block;
+  height: fit-content;
+  min-width: 200px;
+  width: fit-content;
+}
+
+
+  .header {
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("/img/header.jpg");
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("/img/header.jpg");
+    background-position: 70%;
+    background-size: cover;
+    position: relative;
+  }
+  
+  html, body, #root {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  
