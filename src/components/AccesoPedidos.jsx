@@ -1,13 +1,36 @@
-import { useState } from "react";
+import { db } from "../firebase";
+import { useEffect, useState } from "react";
+import { doc, getDoc } from "firebase/firestore";
 
 function AccesoPedidos() {
   const [mostrarModal, setMostrarModal] = useState(false);
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+const [ruta, setRuta] = useState("");
+
+  useEffect(() => {
+    const fetchRuta = async () => {
+      try {
+        const docRef = doc(db, "misrutas", "3"); 
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setRuta(data.title); 
+        } else {
+          console.log("No se encontró el documento con ID 3");
+        }
+      } catch (error) {
+        console.error("Error al obtener la ruta:", error);
+      }
+    };
+
+    fetchRuta();
+  }, []);
 
   const verificarClave = () => {
     if (password === "papota") {
-      window.location.href = "https://pedidosbtm.netlify.app/";
+      window.location.href = ruta || "#";
     } else {
       setError("Contraseña incorrecta");
     }

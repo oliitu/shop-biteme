@@ -1,15 +1,39 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import { motion } from "framer-motion"; 
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../firebase";
+
 
 
 export default function Header({ cart, removeFromCart, increaseQuantity, decreaseQuantity, clearCart, setMostrarModal }) {
+   const [ruta, setRuta] = useState("");
+  useEffect(() => {
+      const fetchRuta = async () => {
+        try {
+          const docRef = doc(db, "misrutas", "1"); 
+          const docSnap = await getDoc(docRef);
+  
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setRuta(data.title); 
+          } else {
+            console.log("No se encontró el documento con ID 3");
+          }
+        } catch (error) {
+          console.error("Error al obtener la ruta:", error);
+        }
+      };
+  
+      fetchRuta();
+    }, []);
+
   const isEmpty = useMemo(() => cart.length === 0, [cart]);
   const cartTotal = useMemo(() => cart.reduce((total, item) => total + item.quantity * item.price, 0), [cart]);
 
   return (
     <header className="pt-5 header w-full">
   <div className="max-w-screen-xl align-bottom mx-auto w-full flex justify-between items-center px-4">
-    <a onClick={clearCart} href="https://biteme-landing.netlify.app/" className="mb-4 mt-10 lg:mt-28 lg:mb-5"> 
+    <a href={ruta || "#"} onClick={clearCart} className="mb-4 mt-10 lg:mt-28 lg:mb-5"> 
       <img className="img-fluid w-16 md:w-32 lg:w-40" src="/img/logonobg.png" alt="imagen logo" />
     </a>
     <div className="mt-10 lg:mt-48 lg:mb-5 carrito relative">
