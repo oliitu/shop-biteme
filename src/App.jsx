@@ -3,7 +3,7 @@ import Cookie from './components/Cookie'
 import { motion, AnimatePresence } from 'framer-motion';
 import Header from './components/Header'
 import AccesoPedidos from "./components/AccesoPedidos";
-
+import FormularioResena from './components/FormularioResena';
 import{db as cookiesData } from './data/db'
 import './App.css'
 import { collection, addDoc, Timestamp } from "firebase/firestore";
@@ -11,43 +11,39 @@ import { db } from "./firebase";
 
 function App() {
   const [clienteNombre, setClienteNombre] = useState('');
-  const [confirmando, setConfirmando] = useState(false);
- 
+  const [confirmando] = useState(false);
+  const [mostrarBotonWhatsApp, setMostrarBotonWhatsApp] = useState(false);
+  const [mostrarModalResena, setMostrarModalResena] = useState(false);
+
+ const generarMensajeWhatsApp = () => {
+  if (!cart.length || !clienteNombre.trim()) return "";
+
+  const lineaGalletas = cart
+    .map(item => `- ${item.name} x${item.quantity} = $${item.quantity * item.price}`)
+    .join('\n');
+
+  return `Hola mamuuu, soy ${clienteNombre}. Te envío el comprobante de mi pedido:\n${lineaGalletas}\nTotal: $${cartTotal}`;
+};
+
+const obtenerLinkWhatsApp = () => {
+  const mensaje = generarMensajeWhatsApp();
+  return `https://wa.me/5493541396868?text=${encodeURIComponent(mensaje)}`;
+};
+
+
  const confirmarPedido = async () => {
-  try {
-    if (!cart.length || isNaN(cartTotal)) {
-      setToast("Error: carrito vacío o total inválido");
-      return;
-    }
-    if (!clienteNombre.trim()) {
-      setToast("Por favor ingresá tu nombre");
-      return;
-    }
-    setConfirmando(true); // 🔒 Desactiva el botón
-
-    const pedido = {
-      carrito: cart.map(item => ({
-        id: item.id,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity
-      })),
-      total: cartTotal,
-      cliente: clienteNombre,
-      fecha: Timestamp.fromDate(new Date())
-    };
-
-    await addDoc(collection(db, "pedidos"), pedido);
-    setToast("Pedido confirmado 🎉");
-    setCart([]);
-    setClienteNombre('');
-    setMostrarModal(false);
-  } catch (error) {
-    console.error("Error al guardar el pedido:", error);
-    setToast("Error al confirmar el pedido");
-  } finally {
-    setConfirmando(false); // 🔓 Vuelve a activar si querés permitirlo de nuevo
+  if (!cart.length || isNaN(cartTotal)) {
+    setToast("Error: carrito vacío o total inválido");
+    return;
   }
+
+  if (!clienteNombre.trim()) {
+    setToast("Por favor ingresá tu nombre");
+    return;
+  }
+
+  setMostrarModal(false);
+  setMostrarBotonWhatsApp(true); // abre el modal de WhatsApp
 };
 
 
@@ -149,8 +145,8 @@ useEffect(() => {
 
       <main>
         
-      <section id="productos" className="align-items-center pt-10 lg:pt-20 pb-4 lg:pb-16 px-6">
-  <div className="max-w-6xl mx-auto text-center mb-7 lg:mb-10">
+      <section  className="align-items-center pt-10 lg:pt-20 pb-4 lg:pb-16 px-6">
+  <div className="max-w-6xl mx-auto text-center mb-7 lg:mb-13">
     <h2 className="text-3xl md:text-5xl lg:text-7xl font-pacifico text-orange-950 mb-2 lg:mb-5">Nuestras Cookies</h2>
     <p className="text-lg lg:text-xl font-poppins text-orange-950">Elegí tu favorita y llevate 5 por $4000</p>
   </div>
@@ -178,17 +174,27 @@ useEffect(() => {
   X
 </motion.button>
 
-      <h2 className="text-xl font-bold text-orange-950 mb-1 lg:mb-2">Total a pagar: ${cartTotal}</h2> 
-      <p className="text-orange-950 text-lg mb-8">
-        alias: biteme.vcp
+      <h2 className="text-xl font-bold text-orange-950 mb-1 lg:mb-3">Total a pagar: ${cartTotal}</h2> 
+      <p className="text-orange-950 text-lg">
+        transferí al alias:
       </p>
+      <p className="text-orange-950 font-bold text-lg mb-8">biteme.vcp</p>
+    
+
       <input
   type="text"
   placeholder="Tu nombre"
   value={clienteNombre}
   onChange={(e) => setClienteNombre(e.target.value)}
+  onKeyDown={(e) => {
+    if (e.key === "Enter") {
+      e.preventDefault(); // evita recarga si está en un form
+      confirmarPedido();
+    }
+  }}
   className="border border-gray-300 rounded px-3 py-2 mb-3 w-full"
 />
+
 
   <motion.button
   whileTap={{ scale: confirmando ? 1 : 0.95 }}
@@ -201,11 +207,85 @@ useEffect(() => {
   {confirmando ? "Confirmando..." : "Confirmar pedido"}
 </motion.button>
 
-
-      
     </div>
   </div>
 )}
+{mostrarBotonWhatsApp && (
+  <div className="fixed inset-0 z-50 backdrop-blur-sm bg-yellow-950/35 flex items-center justify-center">
+    <div className="bg-amber-100 rounded-xl pt-12  px-6 pb-6 w-11/12 max-w-md text-center shadow-lg relative">
+    <motion.button
+  whileTap={{ scale: 0.95 }}
+  onClick={() => {
+    setMostrarBotonWhatsApp(false);
+    setTimeout(() => {
+      setMostrarModalResena(true);
+    }, 300);
+  }}
+  className="absolute top-3 right-3 bg-red-600 text-white px-3 py-1 rounded-full hover:bg-red-800 transition"
+>
+  X
+</motion.button>
+
+
+      <h2 className="text-3xl font-bold text-orange-950 mb-1 lg:mb-2">🎉 ¡Listo! 🎉</h2> 
+      <p className="text-base  text-orange-950 mb-1 lg:mb-2">el último paso para confirmar tu pedido es enviarnos el comprobante</p>
+  <div className="flex items-center justify-center">
+    
+
+  <a
+  href="#"
+  onClick={async (e) => {
+    e.preventDefault(); // prevení redirección automática
+
+    try {
+      const pedido = {
+        carrito: cart.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity
+        })),
+        total: cartTotal,
+        cliente: clienteNombre,
+        fecha: Timestamp.fromDate(new Date()),
+        estado: "en proceso"
+       
+      };
+
+      await addDoc(collection(db, "pedidos"), pedido);
+
+      // Limpieza
+      setToast("Pedido confirmado 🎉");
+
+// Abrí WhatsApp sin cerrar el modal aún
+const mensaje = generarMensajeWhatsApp();
+const link = `https://wa.me/5493541396868?text=${encodeURIComponent(mensaje)}`;
+window.open(link, '_blank');
+
+// Esperá un poco antes de cerrar WhatsApp y mostrar la reseña
+setTimeout(() => {
+  setCart([]);
+  setClienteNombre('');
+  setMostrarBotonWhatsApp(false);
+  setMostrarModalResena(true);
+}, 300);
+
+    } catch (error) {
+      console.error("Error al guardar el pedido:", error);
+      setToast("Error al confirmar el pedido");
+    }
+  }}
+>
+  <img className="h-12 sm:h-14" src="/img/whatsapp.png" alt="WhatsApp" />
+</a>
+
+
+
+  </div> <p className="text-orange-950 font-bold text-lg mt-3 mb-4">biteme.vcp</p>
+  </div></div>
+)}
+
+
      <AccesoPedidos />
       </main>
    
@@ -225,6 +305,26 @@ useEffect(() => {
     </motion.div>
   )}
 </AnimatePresence>
+{mostrarModalResena && (
+  <div className="fixed inset-0 z-[60] backdrop-blur-sm bg-yellow-950/35 flex items-center justify-center">
+    <div className="bg-amber-100 rounded-xl pt-12 px-6 pb-6 w-11/12 max-w-md text-center shadow-lg relative">
+      <motion.button
+        whileTap={{ scale: 0.95 }}
+        onClick={() => setMostrarModalResena(false)}
+        className="absolute top-3 right-3 bg-red-600 text-white px-3 py-1 rounded-full hover:bg-red-800 transition"
+      >
+        X
+      </motion.button>
+
+      <FormularioResena onClose={() => {
+  setMostrarModalResena(false);
+  setToast("¡Gracias por tu reseña!");
+}} />
+
+    </div>
+  </div>
+)}
+
 
     
 <footer className="w-full bg-[#51290e] mt-10 pt-6 lg:pt-10 px-4">

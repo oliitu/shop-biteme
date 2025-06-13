@@ -60,12 +60,19 @@ const [ruta, setRuta] = useState("");
             </button>
             <h2 className="text-lg font-semibold text-amber-950 mb-3">Ingresá la contraseña</h2>
             <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Contraseña"
-              className="w-full border rounded px-3 py-2 mb-3"
-            />
+  type="password"
+  value={password}
+  onChange={(e) => setPassword(e.target.value)}
+  onKeyDown={(e) => {
+    if (e.key === "Enter") {
+      e.preventDefault(); // Previene que envíe un form si hay
+      verificarClave();
+    }
+  }}
+  placeholder="Contraseña"
+  className="w-full border rounded px-3 py-2 mb-3"
+/>
+
             {error && <p className="text-red-500 mb-2">{error}</p>}
             <button
               className="bg-[#ffa2b5] hover:bg-[#ff95ab] text-white px-4 py-2 rounded "

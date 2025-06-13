@@ -10,14 +10,14 @@ export default function Header({ cart, removeFromCart, increaseQuantity, decreas
   useEffect(() => {
       const fetchRuta = async () => {
         try {
-          const docRef = doc(db, "misrutas", "1"); 
+          const docRef = doc(db, "misrutas", "2"); 
           const docSnap = await getDoc(docRef);
   
           if (docSnap.exists()) {
             const data = docSnap.data();
             setRuta(data.title); 
           } else {
-            console.log("No se encontró el documento con ID 3");
+            console.log("No se encontró el documento con ID 2");
           }
         } catch (error) {
           console.error("Error al obtener la ruta:", error);
