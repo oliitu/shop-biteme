@@ -232,50 +232,50 @@ useEffect(() => {
   <div className="flex items-center justify-center">
     
 
- <a
-  href={obtenerLinkWhatsApp()}
-  target="_blank"
-  rel="noopener noreferrer"
-  onClick={async (e) => {
-    e.preventDefault(); // prevení navegación directa solo si necesitás lógica extra
+<a
+  href="#"
+  onClick={(e) => {
+    e.preventDefault();
 
-    try {
-      const pedido = {
-        carrito: cart.map(item => ({
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity
-        })),
-        total: cartTotal,
-        cliente: clienteNombre,
-        fecha: Timestamp.fromDate(new Date()),
-        estado: "en proceso"
-      };
+    // 👇 abrimos una pestaña inmediatamente
+    const win = window.open('', '_blank');
+    const link = obtenerLinkWhatsApp();
 
-      await addDoc(collection(db, "pedidos"), pedido);
-      setToast("Pedido confirmado 🎉");
+    const pedido = {
+      carrito: cart.map(item => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity
+      })),
+      total: cartTotal,
+      cliente: clienteNombre,
+      fecha: Timestamp.fromDate(new Date()),
+      estado: "en proceso"
+    };
 
-      // Abrir WhatsApp
-      const link = obtenerLinkWhatsApp();
-      window.open(link, '_blank');
+    addDoc(collection(db, "pedidos"), pedido)
+      .then(() => {
+        setToast("Pedido confirmado 🎉");
 
-      // Limpiar luego de abrir
-      
+        if (win) win.location.href = link;
+
         setCart([]);
         setClienteNombre('');
         setMostrarBotonWhatsApp(false);
         setMostrarModalResena(true);
-      ;
+      })
+      .catch((error) => {
+        console.error("Error al guardar el pedido:", error);
+        setToast("Error al confirmar el pedido");
 
-    } catch (error) {
-      console.error("Error al guardar el pedido:", error);
-      setToast("Error al confirmar el pedido");
-    }
+        if (win) win.close(); // cierra si hubo error
+      });
   }}
 >
   <img className="h-12 sm:h-14" src="/img/whatsapp.png" alt="WhatsApp" />
 </a>
+
 
 
 
