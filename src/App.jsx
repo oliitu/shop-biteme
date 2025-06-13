@@ -232,10 +232,12 @@ useEffect(() => {
   <div className="flex items-center justify-center">
     
 
-  <a
-  href="#"
+ <a
+  href={obtenerLinkWhatsApp()}
+  target="_blank"
+  rel="noopener noreferrer"
   onClick={async (e) => {
-    e.preventDefault(); // prevení redirección automática
+    e.preventDefault(); // prevení navegación directa solo si necesitás lógica extra
 
     try {
       const pedido = {
@@ -249,26 +251,22 @@ useEffect(() => {
         cliente: clienteNombre,
         fecha: Timestamp.fromDate(new Date()),
         estado: "en proceso"
-       
       };
 
       await addDoc(collection(db, "pedidos"), pedido);
-
-      // Limpieza
       setToast("Pedido confirmado 🎉");
 
-// Abrí WhatsApp sin cerrar el modal aún
-const mensaje = generarMensajeWhatsApp();
-const link = `https://wa.me/5493541396868?text=${encodeURIComponent(mensaje)}`;
-window.open(link, '_blank');
+      // Abrir WhatsApp
+      const link = obtenerLinkWhatsApp();
+      window.open(link, '_blank');
 
-// Esperá un poco antes de cerrar WhatsApp y mostrar la reseña
-setTimeout(() => {
-  setCart([]);
-  setClienteNombre('');
-  setMostrarBotonWhatsApp(false);
-  setMostrarModalResena(true);
-}, 300);
+      // Limpiar luego de abrir
+      
+        setCart([]);
+        setClienteNombre('');
+        setMostrarBotonWhatsApp(false);
+        setMostrarModalResena(true);
+      ;
 
     } catch (error) {
       console.error("Error al guardar el pedido:", error);
@@ -278,6 +276,7 @@ setTimeout(() => {
 >
   <img className="h-12 sm:h-14" src="/img/whatsapp.png" alt="WhatsApp" />
 </a>
+
 
 
 
