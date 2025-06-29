@@ -5,7 +5,8 @@ import { db } from "../firebase";
 
 
 
-export default function Header({ cart, removeFromCart, increaseQuantity, decreaseQuantity, clearCart, setMostrarModal }) {
+export default function Header({ cart, clearCart}) {
+
    const [ruta, setRuta] = useState("");
   useEffect(() => {
       const fetchRuta = async () => {
@@ -28,19 +29,27 @@ export default function Header({ cart, removeFromCart, increaseQuantity, decreas
     }, []);
 
   const isEmpty = useMemo(() => cart.length === 0, [cart]);
-  const cartTotal = useMemo(() => cart.reduce((total, item) => total + item.quantity * item.price, 0), [cart]);
 
   return (
-    <header className="pt-5 header w-full">
+    <header
+  className=" w-full text-white bg-black bg-opacity-40"
+  style={{
+    backgroundImage: `linear-gradient(to right, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("/img/header.jpg")`,
+    backgroundSize: "cover",
+    backgroundPosition: "70%",
+  }}
+>
   <div className="max-w-screen-xl align-bottom mx-auto w-full flex justify-between items-center px-4">
     <a href={ruta || "#"} onClick={clearCart} className="mb-4 mt-10 lg:mt-28 lg:mb-5"> 
       <img className="img-fluid w-16 md:w-32 lg:w-40" src="/img/logonobg.png" alt="imagen logo" />
     </a>
-    <div className="mt-10 lg:mt-48 lg:mb-5 carrito relative">
+
+
+    {/* <div className="mt-10 lg:mt-48 lg:mb-5 carrito relative">
     <img
   src="/img/carrito.png"
   alt="imagen carrito"
-  className="w-6 md:w-9  lg:w-15 object-contain "
+  className="w-6 md:w-9 lg:w-15 object-contain "
 />
       
 <div
@@ -133,7 +142,7 @@ export default function Header({ cart, removeFromCart, increaseQuantity, decreas
       
 
 
-{/* el otro */}
+
 
 
 
@@ -204,7 +213,7 @@ export default function Header({ cart, removeFromCart, increaseQuantity, decreas
   )}
 </div>
 
-    </div>
+    </div> */}
   </div>
 </header>
   );

@@ -8,12 +8,29 @@ import{db as cookiesData } from './data/db'
 import './App.css'
 import { collection, addDoc, Timestamp } from "firebase/firestore";
 import { db } from "./firebase";
+import Carrito from './components/Carrito';
 
 function App() {
   const [clienteNombre, setClienteNombre] = useState('');
   const [confirmando] = useState(false);
   const [mostrarBotonWhatsApp, setMostrarBotonWhatsApp] = useState(false);
   const [mostrarModalResena, setMostrarModalResena] = useState(false);
+
+const [isStickyCart, setIsStickyCart] = useState(false);
+
+  useEffect(() => {
+  const handleScroll = () => {
+    const isMobile = window.innerWidth < 640; // sm breakpoint en Tailwind
+    const scrollThreshold = isMobile ? 40 : 160; // menos scroll en móvil, más en PC
+    setIsStickyCart(window.scrollY > scrollThreshold);
+  };
+
+  window.addEventListener("scroll", handleScroll);
+  return () => window.removeEventListener("scroll", handleScroll);
+}, []);
+
+
+
 
  const generarMensajeWhatsApp = () => {
   if (!cart.length || !clienteNombre.trim()) return "";
@@ -127,7 +144,19 @@ const obtenerLinkWhatsApp = () => {
   }
 
   const [mostrarModal, setMostrarModal] = useState(false);
-  const cartTotal = useMemo(() => cart.reduce((total, item) => total + item.quantity * item.price, 0), [cart]);
+
+  const cartTotal = useMemo(() => {
+  const totalCantidad = cart.reduce((sum, item) => sum + item.quantity, 0);
+  console.log(totalCantidad)
+  // Si hay exactamente 5 cookies, precio promocional
+  if (totalCantidad === 5) {
+    return 4000;
+  }
+
+  // Sino, calcular normalmente
+  return cart.reduce((total, item) => total + item.quantity * item.price, 0);
+}, [cart]);
+
 useEffect(() => {
   document.body.style.overflow = mostrarModal ? 'hidden' : 'auto';
 }, [mostrarModal]);
@@ -135,15 +164,20 @@ useEffect(() => {
   return (
     <>
     <Header 
-  cart={cart} 
+  cart={cart}
+  clearCart={clearCart}
+/>
+<Carrito
+cart={cart} 
+  cartTotal={cartTotal}
   removeFromCart={removeFromCart}
   decreaseQuantity={decreaseQuantity}
   increaseQuantity={increaseQuantity}
   clearCart={clearCart}
   setMostrarModal={setMostrarModal}
-/>
-
-      <main>
+  isStickyCart={isStickyCart}/>
+<main className="">
+  
         
       <section  className="align-items-center pt-10 lg:pt-20 pb-4 lg:pb-16 px-6">
   <div className="max-w-6xl mx-auto text-center mb-7 lg:mb-13">
@@ -174,40 +208,41 @@ useEffect(() => {
   X
 </motion.button>
 
-      <h2 className="text-xl font-bold text-orange-950 mb-1 lg:mb-3">Total a pagar: ${cartTotal}</h2> 
-      <p className="text-orange-950 text-lg">
-        transferí al alias:
-      </p>
-      <p className="text-orange-950 font-bold text-lg mb-8">biteme.vcp</p>
-    
+     <h2 className="text-2xl font-bold text-orange-950 mb-4">
+  Total a pagar: <span className="text-[#6e3712]">${cartTotal}</span>
+</h2>
 
-      <input
+<div className="bg-[#fff8de] border-2 border-yellow-900 rounded-lg px-4 py-3 mb-6 shadow-sm text-left">
+  <p className="text-orange-950 text-lg mb-1">Transferí al siguiente alias:</p>
+  <p className="text-2xl font-bold text-yellow-900 tracking-wide">biteme.vcp</p>
+  <p className="text-orange-950 text-base mt-2">Titular: <span className="font-semibold">Olivia Iturrusgarai Ballés</span></p>
+</div>
+
+<input
   type="text"
   placeholder="Tu nombre"
   value={clienteNombre}
   onChange={(e) => setClienteNombre(e.target.value)}
   onKeyDown={(e) => {
     if (e.key === "Enter") {
-      e.preventDefault(); // evita recarga si está en un form
+      e.preventDefault();
       confirmarPedido();
     }
   }}
-  className="border border-gray-300 rounded px-3 py-2 mb-3 w-full"
+  className="border border-gray-300 rounded px-3 py-2 mb-3 w-full focus:outline-none focus:ring-2 focus:ring-[#ff95ab]"
 />
 
-
-  <motion.button
+<motion.button
   whileTap={{ scale: confirmando ? 1 : 0.95 }}
   onClick={confirmarPedido}
   disabled={confirmando}
   className={`${
     confirmando ? "bg-gray-400 cursor-not-allowed" : "bg-[#ffa2b5] hover:bg-[#ff95ab]"
-  } text-white px-4 py-2 rounded transition mt-4`}
+  } text-white px-4 py-2 rounded transition w-full mt-2`}
 >
   {confirmando ? "Confirmando..." : "Confirmar pedido"}
 </motion.button>
-
-    </div>
+</div>
   </div>
 )}
 {mostrarBotonWhatsApp && (
@@ -231,16 +266,11 @@ useEffect(() => {
       <p className="text-base  text-orange-950 mb-1 lg:mb-2">el último paso para confirmar tu pedido es enviarnos el comprobante</p>
   <div className="flex items-center justify-center">
     
-
 <a
-  href="#"
-  onClick={(e) => {
-    e.preventDefault();
-
-    // 👇 abrimos una pestaña inmediatamente
-    const win = window.open('', '_blank');
-    const link = obtenerLinkWhatsApp();
-
+  href={obtenerLinkWhatsApp()}
+  target="_blank"
+  rel="noopener noreferrer"
+  onClick={() => {
     const pedido = {
       carrito: cart.map(item => ({
         id: item.id,
@@ -257,9 +287,6 @@ useEffect(() => {
     addDoc(collection(db, "pedidos"), pedido)
       .then(() => {
         setToast("Pedido confirmado 🎉");
-
-        if (win) win.location.href = link;
-
         setCart([]);
         setClienteNombre('');
         setMostrarBotonWhatsApp(false);
@@ -268,8 +295,6 @@ useEffect(() => {
       .catch((error) => {
         console.error("Error al guardar el pedido:", error);
         setToast("Error al confirmar el pedido");
-
-        if (win) win.close(); // cierra si hubo error
       });
   }}
 >
@@ -278,9 +303,7 @@ useEffect(() => {
 
 
 
-
-
-  </div> <p className="text-orange-950 font-bold text-lg mt-3 mb-4">biteme.vcp</p>
+  </div>
   </div></div>
 )}
 

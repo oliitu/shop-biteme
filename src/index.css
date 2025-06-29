@@ -2,9 +2,6 @@
 @charset "UTF-8";
 
 
-.carrito #carrito {
-  display: none;
-}
 
 .carrito:hover #carrito {
   display: block;
@@ -14,14 +11,6 @@
 }
 
 
-  .header {
-    background-image: linear-gradient(to right, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("/img/header.jpg");
-    background-image: linear-gradient(to right, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("/img/header.jpg");
-    background-position: 70%;
-    background-size: cover;
-    position: relative;
-  }
-  
   html, body, #root {
     height: 100%;
     width: 100%;
