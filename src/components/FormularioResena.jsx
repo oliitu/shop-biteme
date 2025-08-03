@@ -44,7 +44,8 @@ function FormularioResena({ onClose }) {
       onSubmit={enviarResena}
       className="bg-amber-100 p-4 rounded-xl space-y-4 w-full"
     >
-      <h2 className="text-2xl font-bold text-orange-950">Dejá tu reseña porfi</h2>
+      <h2 className="text-2xl font-bold text-orange-950">🎉 ¡Listo! 🎉</h2>
+      <h3 className="text-xl font-bold text-orange-950">Dejá tu reseña porfi</h3>
       <input
         type="text"
         placeholder="Tu nombre (opcional)"

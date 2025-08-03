@@ -1,5 +1,4 @@
 import { useMemo, useEffect, useState } from 'react';
-import { motion } from "framer-motion"; 
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
 

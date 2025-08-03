@@ -12,6 +12,8 @@ import Carrito from './components/Carrito';
 
 function App() {
   const [clienteNombre, setClienteNombre] = useState('');
+  const [metodoPago, setMetodoPago] = useState('');
+
   const [confirmando] = useState(false);
   const [mostrarBotonWhatsApp, setMostrarBotonWhatsApp] = useState(false);
   const [mostrarModalResena, setMostrarModalResena] = useState(false);
@@ -59,9 +61,46 @@ const obtenerLinkWhatsApp = () => {
     return;
   }
 
+  if (!metodoPago) {
+    setToast("Elegí un método de pago");
+    return;
+  }
+
   setMostrarModal(false);
-  setMostrarBotonWhatsApp(true); // abre el modal de WhatsApp
+
+  const pedido = {
+    carrito: cart.map(item => ({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity
+    })),
+    total: cartTotal,
+    cliente: clienteNombre,
+    metodo: metodoPago,
+    fecha: Timestamp.fromDate(new Date()),
+    estado: "en proceso"
+  };
+
+  try {
+    await addDoc(collection(db, "pedidos"), pedido);
+    setToast("Pedido confirmado 🎉");
+    setCart([]);
+    setClienteNombre('');
+
+    if (metodoPago === "efectivo") {
+      // No mostrar modal de WhatsApp
+      setMostrarModalResena(true);
+    } else {
+      // Solo mostrar botón de WhatsApp si es mercado pago
+      setMostrarBotonWhatsApp(true);
+    }
+  } catch (error) {
+    console.error("Error al guardar el pedido:", error);
+    setToast("Error al confirmar el pedido");
+  }
 };
+
 
 
 
@@ -212,11 +251,6 @@ cart={cart}
   Total a pagar: <span className="text-[#6e3712]">${cartTotal}</span>
 </h2>
 
-<div className="bg-[#fff8de] border-2 border-yellow-900 rounded-lg px-4 py-3 mb-6 shadow-sm text-left">
-  <p className="text-orange-950 text-lg mb-1">Transferí al siguiente alias:</p>
-  <p className="text-2xl font-bold text-yellow-900 tracking-wide">biteme.vcp</p>
-  <p className="text-orange-950 text-base mt-2">Titular: <span className="font-semibold">Olivia Iturrusgarai Ballés</span></p>
-</div>
 
 <input
   type="text"
@@ -231,6 +265,31 @@ cart={cart}
   }}
   className="border border-gray-300 rounded px-3 py-2 mb-3 w-full focus:outline-none focus:ring-2 focus:ring-[#ff95ab]"
 />
+<div className="mb-4">
+  <p className="text-orange-950 text-lg mb-1">Elegí tu forma de pago:</p>
+  <div className="flex justify-center gap-4">
+    <button
+      onClick={() => setMetodoPago('mercado_pago')}
+      className={`px-4 py-2 rounded-lg border-2 ${
+        metodoPago === 'mercado_pago'
+          ? 'bg-[#ff95ab] text-white border-[#ff95ab]'
+          : 'bg-white text-orange-950 border-orange-300'
+      }`}
+    >
+      Mercado Pago
+    </button>
+    <button
+      onClick={() => setMetodoPago('efectivo')}
+      className={`px-4 py-2 rounded-lg border-2 ${
+        metodoPago === 'efectivo'
+          ? 'bg-[#ff95ab] text-white border-[#ff95ab]'
+          : 'bg-white text-orange-950 border-orange-300'
+      }`}
+    >
+      Efectivo
+    </button>
+  </div>
+</div>
 
 <motion.button
   whileTap={{ scale: confirmando ? 1 : 0.95 }}
@@ -240,6 +299,7 @@ cart={cart}
     confirmando ? "bg-gray-400 cursor-not-allowed" : "bg-[#ffa2b5] hover:bg-[#ff95ab]"
   } text-white px-4 py-2 rounded transition w-full mt-2`}
 >
+  
   {confirmando ? "Confirmando..." : "Confirmar pedido"}
 </motion.button>
 </div>
@@ -262,8 +322,14 @@ cart={cart}
 </motion.button>
 
 
-      <h2 className="text-3xl font-bold text-orange-950 mb-1 lg:mb-2">🎉 ¡Listo! 🎉</h2> 
-      <p className="text-base  text-orange-950 mb-1 lg:mb-2">el último paso para confirmar tu pedido es enviarnos el comprobante</p>
+      <h2 className="text-3xl font-bold text-orange-950 mb-1 lg:mb-2">¡Ya casi!</h2> 
+      <div className="bg-[#fff8de] border-2 border-yellow-900 rounded-lg px-4 py-3 my-4 shadow-sm text-left">
+  <p className="text-orange-950 text-lg mb-1">Transferí al siguiente alias:</p>
+  <p className="text-2xl font-bold text-yellow-900 tracking-wide">biteme.vcp</p>
+  <p className="text-orange-950 text-base mt-2">Titular: <span className="font-semibold">Olivia Iturrusgarai Ballés</span></p>
+</div>
+
+      <p className="text-base  text-orange-950 mb-1 lg:mb-2">y envianos el comprobante por whatsapp!</p>
   <div className="flex items-center justify-center">
     
 <a
@@ -280,6 +346,7 @@ cart={cart}
       })),
       total: cartTotal,
       cliente: clienteNombre,
+       metodo: metodoPago,
       fecha: Timestamp.fromDate(new Date()),
       estado: "en proceso"
     };
